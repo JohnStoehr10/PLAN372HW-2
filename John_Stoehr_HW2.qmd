@@ -4,6 +4,8 @@ format: pdf
 editor: visual
 ---
 
+GitHub link: <https://github.com/JohnStoehr10/PLAN372HW-2.git>
+
 **Restaurant Dataset:**
 
 # **Question 1: Visualize the overall distribution of inspection scores using a histogram:**
