@@ -1,0 +1,220 @@
+---
+title: "John Stoehr- Homework #2"
+format: pdf
+editor: visual
+---
+
+**Restaurant Dataset:**
+
+# **Question 1: Visualize the overall distribution of inspection scores using a histogram:**
+
+```{r}
+library(tidyverse)
+ggplot(data = restaurant_inspections, aes(x = SCORE)) +
+  geom_histogram() +
+  xlab("Scores") +
+  ylab("Number of Inspections") +
+  ggtitle("Inspection Scores")
+```
+
+# **Question 2: Trends in older versus new restaurants on their scores:**
+
+-   I use the count function to help us see how many restaurants are being represented in each year. This way we can see if the data is skewed. For example, 1986 makes the older restaurants look very good until we see there is only one sample from that year.
+
+-   Looking deeper into the table, I am not able to identify any significant trends. For the most part, it seems like the restaurants all have around the same average score per year. The more interesting piece of information I was able to pull out from this is that in this data set, the newer restaurants seem to be sampled more often than the older ones.
+
+```{r}
+#creating a new column to sort by year of inspections
+aggregate_data <- restaurant_inspections %>%
+  mutate(RESTAURANTOPENDATE = as.Date(RESTAURANTOPENDATE),
+         year = year(RESTAURANTOPENDATE)) %>% 
+  group_by(year) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T), 
+            Count = n()) %>%  
+  arrange(year)  
+ 
+print(aggregate_data)
+
+ggplot(data = aggregate_data, aes(x = year, y = Average_Score, color= year)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+  labs(title = "Average Inspection Scores per Year",
+       x = "Year",
+       y = "Average Inspection Score")
+```
+
+# **Question 3: Trend in inspection scores varying by city:**
+
+-   The inspection score do tend to vary by city. As you can see from the graph we can see a little bit of variation in the heights of the columns. Its not a huge amount of variation but enough to tell a difference.
+
+-   Looking closer into the table, we can see the minimum average score for a city is 94.5 with the maximum average score being 99.75.
+
+```{r}
+#making all of the cities uppercase so there is no the same cities with different capitalization will be grouped together
+cleaned_data <- restaurant_inspections %>% 
+  mutate(UPPER_CITY = str_to_upper(CITY)) %>% 
+  group_by(UPPER_CITY) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T),
+            Count = n())
+
+print(cleaned_data)
+
+ggplot(data = cleaned_data, aes(x = UPPER_CITY, y = Average_Score)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+# **Question 4: Do inspection scores vary by inspector?**
+
+-   Inspection scores do vary by inspector. As we can see by the graph provided, there are some differences in the way inspectors are grading. There is a big dip in scores when it comes to Thomas Jumalon which shows a possible difference in grading techniques.
+
+```{r}
+#creating a new data set with inspectors only so we can find more out about each inspector and their scoring distribution
+library(tidyverse)
+inspector_scores <- restaurant_inspections %>%
+  group_by(INSPECTOR) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T),
+            Count = n())
+
+print(inspector_scores)
+
+ggplot(data = inspector_scores, aes(x = INSPECTOR, y = Average_Score)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+# Question 5: Do the sample sizes in each of your groups provide an explanation for the results above?
+
+-   Yes, it is possible that the extreme results we've seen are due to small sample sizes. From graphs created, we can see a big difference when it comes to how many inspections each inspector is doing as well as which cities they are happening in. This is an explanation for why the results can sometimes be seen as extreme.
+
+```{r}
+
+#Graph for sample sizes in a particular time period
+ggplot(data = aggregate_data, aes(x = year, y = Count)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+    labs(title = "Samples of Inspections Per Year",
+       x = "Year",
+       y = "Number of Inspections")
+
+#Graph for sample sizes in a particular city
+ggplot(data = cleaned_data, aes(x = UPPER_CITY, y = Count)) +
+  geom_col() +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(title = "Samples of Inspections Per City",
+       x = "City",
+       y = "Number of Inspections")
+
+#Graph for sample sizes in by a particular inspector
+ggplot(data = inspector_scores, aes(x = INSPECTOR, y = Count)) +
+  geom_col() +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(title = "Samples of Inspections Per Inspector",
+       x = "Inspector",
+       y = "Number of Inspections")
+```
+
+# Question 6: Are the scores for restaurants higher than other types of facilities?
+
+-   From the graph we can see that the average score for restaurants is actually the lowest out of all facilities.
+
+```{r}
+facility_data <- restaurant_inspections %>% 
+  group_by(FACILITYTYPE, na.rm = T) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T))
+
+print(facility_data)
+
+ggplot(data = facility_data, aes(x = FACILITYTYPE, y = Average_Score)) +
+  geom_boxplot() +
+      theme(axis.text.x = element_text(angle = 90)) 
+```
+
+# Question 7: 
+
+```{r}
+#filter the data
+restaurant_data <- restaurant_inspections %>% 
+  filter(str_detect((FACILITYTYPE), "Restaurant"))
+
+#create a histogram
+ggplot(data = restaurant_data, aes(x = SCORE)) +
+  geom_histogram() +
+  xlab("Scores") +
+  ylab("Number of Inspections") +
+  ggtitle("Restaurant Inspection Scores")
+
+#trend in older versus newer restaurant scores
+oldversusnew_data <- restaurant_data %>%
+  mutate(RESTAURANTOPENDATE = as.Date(RESTAURANTOPENDATE),
+         year = year(RESTAURANTOPENDATE)) %>% 
+  group_by(year) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T), 
+            Count = n()) %>%  
+  arrange(year)  
+ 
+print(oldversusnew_data)
+
+ggplot(data = oldversusnew_data, aes(x = year, y = Average_Score, color= year)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+  labs(title = "Average Restuarant Inspection Scores per Year",
+       x = "Year",
+       y = "Average Restaurant Inspection Score")
+
+#City scores
+cleanedrestaurant_data <- restaurant_data %>% 
+  mutate(UPPER_CITY = str_to_upper(CITY)) %>% 
+  group_by(UPPER_CITY) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T),
+            Count = n())
+
+print(cleanedrestaurant_data)
+
+ggplot(data = cleanedrestaurant_data, aes(x = UPPER_CITY, y = Average_Score)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90))
+
+#Inspector Scores
+restaurantinspector_scores <- restaurant_data %>%
+  group_by(INSPECTOR) %>% 
+  summarize(Average_Score = mean(SCORE, na.rm = T),
+            Count = n())
+
+print(restaurantinspector_scores)
+
+ggplot(data = restaurantinspector_scores, aes(x = INSPECTOR, y = Average_Score)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90))
+
+#Sample sizes
+#Graph for sample sizes in a particular time period
+ggplot(data = oldversusnew_data, aes(x = year, y = Count)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+    labs(title = "Samples of Inspections Per Year",
+       x = "Year",
+       y = "Number of Inspections")
+
+#Graph for sample sizes in a particular city
+ggplot(data = cleanedrestaurant_data, aes(x = UPPER_CITY, y = Count)) +
+  geom_col() +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(title = "Samples of Inspections Per City",
+       x = "City",
+       y = "Number of Inspections")
+
+#Graph for sample sizes in by a particular inspector
+ggplot(data = restaurantinspector_scores, aes(x = INSPECTOR, y = Count)) +
+  geom_col() +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(title = "Samples of Inspections Per Inspector",
+       x = "Inspector",
+       y = "Number of Inspections")
+```
