@@ -2,6 +2,11 @@
 title: "John Stoehr- Homework #2"
 format: pdf
 editor: visual
+execute:
+  echo: false
+  warning: false
+editor_options: 
+  chunk_output_type: inline
 ---
 
 GitHub link: <https://github.com/JohnStoehr10/PLAN372HW-2.git>
@@ -11,7 +16,12 @@ GitHub link: <https://github.com/JohnStoehr10/PLAN372HW-2.git>
 # **Question 1: Visualize the overall distribution of inspection scores using a histogram:**
 
 ```{r}
+#| label: restaurant_inspections
+#| fig-width: 5
+#| fig-asp: .618
+
 library(tidyverse)
+restaurant_inspections <- read_csv("restaurant_inspections.csv")
 ggplot(data = restaurant_inspections, aes(x = SCORE)) +
   geom_histogram() +
   xlab("Scores") +
@@ -26,6 +36,10 @@ ggplot(data = restaurant_inspections, aes(x = SCORE)) +
 -   Looking deeper into the table, I am not able to identify any significant trends. For the most part, it seems like the restaurants all have around the same average score per year. The more interesting piece of information I was able to pull out from this is that in this data set, the newer restaurants seem to be sampled more often than the older ones.
 
 ```{r}
+
+library(lubridate)
+library(knitr)
+library(gt)
 #creating a new column to sort by year of inspections
 aggregate_data <- restaurant_inspections %>%
   mutate(RESTAURANTOPENDATE = as.Date(RESTAURANTOPENDATE),
@@ -34,8 +48,9 @@ aggregate_data <- restaurant_inspections %>%
   summarize(Average_Score = mean(SCORE, na.rm = T), 
             Count = n()) %>%  
   arrange(year)  
- 
-print(aggregate_data)
+
+kable(aggregate_data, caption = "Average Inspection Scores by Year")
+
 
 ggplot(data = aggregate_data, aes(x = year, y = Average_Score, color= year)) +
   geom_line() +
@@ -53,6 +68,7 @@ ggplot(data = aggregate_data, aes(x = year, y = Average_Score, color= year)) +
 -   Looking closer into the table, we can see the minimum average score for a city is 94.5 with the maximum average score being 99.75.
 
 ```{r}
+
 #making all of the cities uppercase so there is no the same cities with different capitalization will be grouped together
 cleaned_data <- restaurant_inspections %>% 
   mutate(UPPER_CITY = str_to_upper(CITY)) %>% 
@@ -60,7 +76,7 @@ cleaned_data <- restaurant_inspections %>%
   summarize(Average_Score = mean(SCORE, na.rm = T),
             Count = n())
 
-print(cleaned_data)
+kable(cleaned_data, caption = "Average Inspection Score by City")
 
 ggplot(data = cleaned_data, aes(x = UPPER_CITY, y = Average_Score)) +
   geom_col() +
@@ -73,6 +89,7 @@ ggplot(data = cleaned_data, aes(x = UPPER_CITY, y = Average_Score)) +
 -   Inspection scores do vary by inspector. As we can see by the graph provided, there are some differences in the way inspectors are grading. There is a big dip in scores when it comes to Thomas Jumalon which shows a possible difference in grading techniques.
 
 ```{r}
+
 #creating a new data set with inspectors only so we can find more out about each inspector and their scoring distribution
 library(tidyverse)
 inspector_scores <- restaurant_inspections %>%
@@ -80,7 +97,7 @@ inspector_scores <- restaurant_inspections %>%
   summarize(Average_Score = mean(SCORE, na.rm = T),
             Count = n())
 
-print(inspector_scores)
+kable(inspector_scores, caption = "Average Inspection Scores by Inspector")
 
 ggplot(data = inspector_scores, aes(x = INSPECTOR, y = Average_Score)) +
   geom_col() +
@@ -125,20 +142,22 @@ ggplot(data = inspector_scores, aes(x = INSPECTOR, y = Count)) +
 -   From the graph we can see that the average score for restaurants is actually the lowest out of all facilities.
 
 ```{r}
+
 facility_data <- restaurant_inspections %>% 
   group_by(FACILITYTYPE, na.rm = T) %>% 
   summarize(Average_Score = mean(SCORE, na.rm = T))
 
-print(facility_data)
+kable(facility_data, caption = "Average Inspection Scores by Facility")
 
 ggplot(data = facility_data, aes(x = FACILITYTYPE, y = Average_Score)) +
   geom_boxplot() +
       theme(axis.text.x = element_text(angle = 90)) 
 ```
 
-# Question 7: 
+# Question 7:
 
 ```{r}
+
 #filter the data
 restaurant_data <- restaurant_inspections %>% 
   filter(str_detect((FACILITYTYPE), "Restaurant"))
@@ -159,7 +178,7 @@ oldversusnew_data <- restaurant_data %>%
             Count = n()) %>%  
   arrange(year)  
  
-print(oldversusnew_data)
+kable(oldversusnew_data, caption = "Average Inspection Scores by Year")
 
 ggplot(data = oldversusnew_data, aes(x = year, y = Average_Score, color= year)) +
   geom_line() +
@@ -176,7 +195,7 @@ cleanedrestaurant_data <- restaurant_data %>%
   summarize(Average_Score = mean(SCORE, na.rm = T),
             Count = n())
 
-print(cleanedrestaurant_data)
+kable(cleanedrestaurant_data, caption = "Average Inspection Scores by City")
 
 ggplot(data = cleanedrestaurant_data, aes(x = UPPER_CITY, y = Average_Score)) +
   geom_col() +
@@ -188,7 +207,7 @@ restaurantinspector_scores <- restaurant_data %>%
   summarize(Average_Score = mean(SCORE, na.rm = T),
             Count = n())
 
-print(restaurantinspector_scores)
+kable(restaurantinspector_scores, caption = "Average Inspection Scores at Restaurants by Inspectors")
 
 ggplot(data = restaurantinspector_scores, aes(x = INSPECTOR, y = Average_Score)) +
   geom_col() +
